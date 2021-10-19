@@ -1,10 +1,13 @@
 import express from "express"
 import listEndpoints from "express-list-endpoints"
+import authorsRouter from "./services/index.js"
+
 
 const server = express()
 
 server.use(express.json())
 
+server.use("/authors", authorsRouter)
 
 const port = 3001
 

@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/zukhriddinakhmedov/strive_blog_api_m5_2_day2#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-list-endpoints": "^6.0.0",
     "nodemon": "^2.0.7",
