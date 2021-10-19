@@ -15,15 +15,41 @@ authorsRouter.get("/", (req, res) => {
 
 })
 authorsRouter.post("/", (req, res) => {
+    const { name, surname, email, dateOfBirth } = req.body
     const authors = JSON.parse(fs.readFileSync(authorsJsonPath).toString())
-    const newAuthor = { ...req.body, createdAt: new Date(), id: uniqid() }
+    const newAuthor = {
+        id: uniqid(),
+        name,
+        surname,
+        email,
+        dateOfBirth,
+        createdAt: new Date(),
+    }
     authors.push(newAuthor)
     fs.writeFileSync(authorsJsonPath, JSON.stringify(authors))
 
     res.status(201).send({ id: newAuthor.id })
 })
 authorsRouter.post("/checkEmail", (req, res) => {
-
+    const { name, surname, email, dateOfBirth } = req.body
+    const newAuthor = {
+        id: uniqid(),
+        name,
+        surname,
+        email,
+        dateOfBirth,
+        createdAt: new Date(),
+    }
+    const authors = JSON.parse(fs.readFileSync(authorsFilePath).toString())
+    const emailIsThere = authors.some(
+        author => author.email === req.body.email)
+    if (emailIsThere) {
+        res.send(`Sorry the email is already in use ${false}`)
+    } else {
+        authors.push(newAuthor)
+        fs.writeFileSync(authorsJsonPath, JSON.stringify(authors))
+        return res.send(true)
+    }
 })
 authorsRouter.get("/:authorId", (req, res) => {
     const authors = JSON.parse(fs.readFileSync(authorsJsonPath).toString())
