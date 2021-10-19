@@ -22,6 +22,9 @@ authorsRouter.post("/", (req, res) => {
 
     res.status(201).send({ id: newAuthor.id })
 })
+authorsRouter.post("/checkEmail", (req, res) => {
+
+})
 authorsRouter.get("/:authorId", (req, res) => {
     const authors = JSON.parse(fs.readFileSync(authorsJsonPath).toString())
 
@@ -29,7 +32,7 @@ authorsRouter.get("/:authorId", (req, res) => {
     res.send(author)
 })
 authorsRouter.put("/:authorId", (req, res) => {
-    const authors = JSON.parse(fs, readFileSync(authorsJsonPath).toString())
+    const authors = JSON.parse(fs.readFileSync(authorsJsonPath).toString())
     const indexOfAuthor = authors.findIndex(author => author.id === req.params.authorId)
     const updatedAuthor = { ...authors[indexOfAuthor], ...req.body }
 
@@ -39,8 +42,8 @@ authorsRouter.put("/:authorId", (req, res) => {
 
     res.send(updatedAuthor)
 })
-authorsRouter.delete("/", (req, res) => {
-    const authors = JSON.parse(fs, readFileSync(authorsJsonPath).toString())
+authorsRouter.delete("/:authorId", (req, res) => {
+    const authors = JSON.parse(fs.readFileSync(authorsJsonPath).toString())
     const filteredAuthors = authors.filter(author => author.id !== req.params.authorId)
     fs.writeFileSync(authorsJsonPath, JSON.stringify(filteredAuthors))
 
