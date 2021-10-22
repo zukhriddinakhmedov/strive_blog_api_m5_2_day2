@@ -1,29 +1,22 @@
 import express from "express"
-import { fileURLToPath } from "url"
-import { dirname, join } from "path"
-import fs from "fs"
 import uniqid from "uniqid"
 import createHttpError from "http-errors"
 import { validationResult } from "express-validator"
 import { postsValidation } from "./validation.js"
+import { readPosts, writePost } from "../../library/fs-tools.js"
 
 
 const postsRouter = express.Router()
 
-const postsJsonPath = join(dirname(fileURLToPath(import.meta.url)), "posts.json")
-
-const readPosts = () => JSON.parse(fs.readFileSync(postsJsonPath))
-const writePost = posts => fs.writeFileSync(postsJsonPath, JSON.stringify(posts))
-
-postsRouter.get("/", (req, res, next) => {
+postsRouter.get("/", async (req, res, next) => {
     try {
-        const posts = readPosts()
+        const posts = await readPosts()
         res.send(posts)
     } catch (error) {
         next(error)
     }
 })
-postsRouter.post("/", postsValidation, (req, res, next) => {
+postsRouter.post("/", postsValidation, async (req, res, next) => {
     try {
         const notValidated = validationResult(req)
 
@@ -31,20 +24,20 @@ postsRouter.post("/", postsValidation, (req, res, next) => {
             next(createHttpError(400, { notValidated }))
         } else {
             const newPost = { ...req.body, createdAt: new Date(), id: uniqid() }
-            const posts = readPosts()
+            const posts = await readPosts()
 
             posts.push(newPost)
 
-            writePost(posts)
+            await writePost(posts)
             res.status(201).send({ title: newPost.title })
         }
     } catch (error) {
         next(error)
     }
 })
-postsRouter.get("/:postId", (req, res, next) => {
+postsRouter.get("/:postId", async (req, res, next) => {
     try {
-        const posts = readPosts()
+        const posts = await readPosts()
         const post = posts.find(post => post.id === req.params.postId)
         if (post) {
             res.send(post)
@@ -55,9 +48,9 @@ postsRouter.get("/:postId", (req, res, next) => {
         next(error)
     }
 })
-postsRouter.put("/:postId", (req, res, next) => {
+postsRouter.put("/:postId", async (req, res, next) => {
     try {
-        const posts = readPosts()
+        const posts = await readPosts()
         const index = posts.findIndex(post => post.id === req.params.postId)
         const postToEdit = posts[index]
 
@@ -66,18 +59,18 @@ postsRouter.put("/:postId", (req, res, next) => {
 
         posts[index] = updatedPost
 
-        writePost(posts)
+        await writePost(posts)
         res.send(updatedPost)
     } catch (error) {
         next(error)
     }
 })
-postsRouter.delete("/:postId", (req, res, next) => {
+postsRouter.delete("/:postId", async (req, res, next) => {
     try {
-        const posts = readPosts()
-        const deletedPost = posts.filter(post => post.id !== req.params.postId)
+        const posts = await readPosts()
+        const notdeletedPost = posts.filter(post => post.id !== req.params.postId)
 
-        writePost(deletedPost)
+        await writePost(notdeletedPost)
 
         res.status(204).send()
 

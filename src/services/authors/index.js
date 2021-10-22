@@ -1,80 +1,104 @@
 import express from "express"
-import fs, { readFileSync } from "fs"
-import { fileURLToPath } from "url"
-import { dirname, join } from "path"
 import uniqid from "uniqid"
+import createHttpError from "http-errors"
+import { validationResult } from "express-validator"
+import { authorsValidation } from "./validation.js"
+import { readAuthors, writeAuthors } from "../../library/fs-tools.js"
 
 const authorsRouter = express.Router()
 
-const currentDirPath = dirname(fileURLToPath(import.meta.url))
-const authorsJsonPath = join(currentDirPath, "authors.json")
 
-authorsRouter.get("/", (req, res) => {
-    const authors = JSON.parse(fs.readFileSync(authorsJsonPath).toString())
-    res.send(authors)
+authorsRouter.get("/", async (req, res, next) => {
+    try {
+        const authors = await readAuthors()
+        res.send(authors)
+    } catch (error) {
+        next(error)
+    }
+})
+authorsRouter.post("/", authorsValidation, async (req, res, next) => {
+    try {
+        const errorList = validationResult(req)
+
+        if (!errorList.isEmpty()) {
+            NotExtended(createHttpError(400, { errorList }))
+        } else {
+            const newAuthor = {
+                ...req.body, id: uniqid(),
+                createdAt: new Date(),
+            }
+            const authors = await readAuthors()
+
+            authors.push(newAuthor)
+            await writeAuthors(authors)
+
+            res.status(201).send({ id: newAuthor.id })
+        }
+    } catch (error) {
+        next(error)
+    }
 
 })
-authorsRouter.post("/", (req, res) => {
-    const { name, surname, email, dateOfBirth } = req.body
-    const authors = JSON.parse(fs.readFileSync(authorsJsonPath).toString())
-    const newAuthor = {
-        id: uniqid(),
-        name,
-        surname,
-        email,
-        dateOfBirth,
-        createdAt: new Date(),
-    }
-    authors.push(newAuthor)
-    fs.writeFileSync(authorsJsonPath, JSON.stringify(authors))
+// authorsRouter.post("/checkEmail", (req, res) => {
+//     const { name, surname, email, dateOfBirth } = req.body
+//     const newAuthor = {
+//         id: uniqid(),
+//         name,
+//         surname,
+//         email,
+//         dateOfBirth,
+//         createdAt: new Date(),
+//     }
+//     const authors = JSON.parse(fs.readFileSync(authorsFilePath).toString())
+//     const emailIsThere = authors.some(
+//         author => author.email === req.body.email)
+//     if (emailIsThere) {
+//         res.send(`Sorry the email is already in use ${false}`)
+//     } else {
+//         authors.push(newAuthor)
+//         fs.writeFileSync(authorsJsonPath, JSON.stringify(authors))
+//         return res.send(true)
+//     }
+// })
+authorsRouter.get("/:authorId", async (req, res, next) => {
+    try {
+        const authors = readAuthors()
 
-    res.status(201).send({ id: newAuthor.id })
-})
-authorsRouter.post("/checkEmail", (req, res) => {
-    const { name, surname, email, dateOfBirth } = req.body
-    const newAuthor = {
-        id: uniqid(),
-        name,
-        surname,
-        email,
-        dateOfBirth,
-        createdAt: new Date(),
+        const author = authors.find(author => author.id === req.params.authorId)
+        if (author) {
+            res.send(author)
+        } else {
+            next(createHttpError(404, `Author with id ${req.params.authorId} is not found`))
+        }
+    } catch (error) {
+        next(error)
     }
-    const authors = JSON.parse(fs.readFileSync(authorsFilePath).toString())
-    const emailIsThere = authors.some(
-        author => author.email === req.body.email)
-    if (emailIsThere) {
-        res.send(`Sorry the email is already in use ${false}`)
-    } else {
-        authors.push(newAuthor)
+})
+authorsRouter.put("/:authorId", async (req, res, next) => {
+    try {
+        const authors = readAuthors()
+        const indexOfAuthor = authors.findIndex(author => author.id === req.params.authorId)
+        const updatedAuthor = { ...authors[indexOfAuthor], ...req.body }
+
+        authors[indexOfAuthor] = updatedAuthor
+
         fs.writeFileSync(authorsJsonPath, JSON.stringify(authors))
-        return res.send(true)
+
+        res.send(updatedAuthor)
+    } catch (error) {
+        next(error)
     }
 })
-authorsRouter.get("/:authorId", (req, res) => {
-    const authors = JSON.parse(fs.readFileSync(authorsJsonPath).toString())
+authorsRouter.delete("/:authorId", async (req, res, next) => {
+    try {
+        const authors = readAuthors()
+        const filteredAuthors = authors.filter(author => author.id !== req.params.authorId)
+        fs.writeFileSync(authorsJsonPath, JSON.stringify(filteredAuthors))
 
-    const author = authors.find(author => author.id === req.params.authorId)
-    res.send(author)
-})
-authorsRouter.put("/:authorId", (req, res) => {
-    const authors = JSON.parse(fs.readFileSync(authorsJsonPath).toString())
-    const indexOfAuthor = authors.findIndex(author => author.id === req.params.authorId)
-    const updatedAuthor = { ...authors[indexOfAuthor], ...req.body }
-
-    authors[indexOfAuthor] = updatedAuthor
-
-    fs.writeFileSync(authorsJsonPath, JSON.stringify(authors))
-
-    res.send(updatedAuthor)
-})
-authorsRouter.delete("/:authorId", (req, res) => {
-    const authors = JSON.parse(fs.readFileSync(authorsJsonPath).toString())
-    const filteredAuthors = authors.filter(author => author.id !== req.params.authorId)
-    fs.writeFileSync(authorsJsonPath, JSON.stringify(filteredAuthors))
-
-    res.status(204).send()
-
+        res.status(204).send()
+    } catch (error) {
+        next(error)
+    }
 })
 
 export default authorsRouter
