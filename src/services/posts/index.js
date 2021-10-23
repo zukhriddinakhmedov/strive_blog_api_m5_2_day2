@@ -29,7 +29,7 @@ postsRouter.post("/", postsValidation, async (req, res, next) => {
             posts.push(newPost)
 
             await writePost(posts)
-            res.status(201).send({ title: newPost.title })
+            res.status(201).send({ id: newPost.id })
         }
     } catch (error) {
         next(error)
