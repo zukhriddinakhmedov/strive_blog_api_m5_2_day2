@@ -11,8 +11,20 @@ const server = express()
 
 const publicFolderPath = join(process.cwd(), "/public")
 // --------------------------GLOBAL MIDDLEWARES----------------------
+const whitelist = [process.env.FE_LOCAL_URL, process.env.FE_PROD_URL]
+const corsOpts = {
+    origin: function (origin, next) {
+        console.log("Current origin: ", origin)
+        if (!origin || whitelist.indexOf(origin) !== -1) {
+            next(null, true)
+        } else {
+            next(new Error("The error occured with cors"))
+        }
+    }
+}
+
 server.use(express.static(publicFolderPath))
-server.use(cors())
+server.use(cors(corsOpts))
 server.use(express.json())
 
 // ---------------------------ENDPOINTS----------------------
@@ -25,7 +37,7 @@ server.use(unauthorisedErrorHandler)
 server.use(notFoundHandler)
 server.use(internaServerlErrorHandler)
 
-const port = 3001
+const port = process.env.PORT
 
 console.table(listEndpoints(server))
 
