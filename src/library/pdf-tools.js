@@ -11,10 +11,22 @@ export const getPdfReadableStream = data => {
     const printer = new PdfPrinter(fonts)
 
     const docDefinition = {
-        content: [data.title, "Another paragraph, this time a little bit longer to make sure, this line will be divided into"],
-        defaultStyle: {
-            font: "Helvetica",
-        },
+        content: [
+            { text: data.title, style: "subHeader" },
+            { text: data.category, style: "header" },
+            { text: data.author.name, style: "subHeader" },
+            { text: data.content }
+        ],
+        styles: {
+            header: {
+                fontSize: 18,
+                bold: true,
+            },
+            subHeader: {
+                fontSize: 14,
+                bold: false
+            }
+        }
     }
 
 
