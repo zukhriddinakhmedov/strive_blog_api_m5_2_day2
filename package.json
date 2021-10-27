@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/zukhriddinakhmedov/strive_blog_api_m5_2_day2#readme",
   "dependencies": {
+    "axios": "^0.24.0",
     "cloudinary": "^1.27.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
@@ -30,6 +31,7 @@
     "multer": "^1.4.3",
     "multer-storage-cloudinary": "^4.0.0",
     "pdfmake": "^0.2.2",
+    "striptags": "^3.2.0",
     "uniqid": "^5.4.0"
   },
   "devDependencies": {

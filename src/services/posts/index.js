@@ -4,7 +4,7 @@ import createHttpError from "http-errors"
 import { validationResult } from "express-validator"
 import { postsValidation } from "./validation.js"
 import { readPosts, writePost } from "../../library/fs-tools.js"
-import { pipeline } from "stream"
+// import { pipeline } from "stream"
 import { getPdfReadableStream } from "../../library/pdf-tools.js"
 
 
@@ -22,19 +22,17 @@ postsRouter.get("/:id/pdf", async (req, res, next) => {
     try {
         const posts = await readPosts()
         const post = posts.find((post) => post.id === req.params.id)
-
-        res.setHeader("Content-Disposition", `attachment; filename=document.pdf`)
-        const source = getPdfReadableStream({
-            content: post.content
-        })
-        const destination = res
-
-        pipeline(source, destination, (err) => {
-            if (err) next(err)
-        })
+        if (!post) {
+            res
+                .status(404)
+                .send({ message: `blog with ${req.params.id} is not found` })
+        }
+        const pdfStream = await getPdfReadableStream(post)
+        res.setHeader("Content-Type", "application/pdf")
+        pdfStream.pipe(res)
+        pdfStream.end().push(null)
     } catch (error) {
-        console.log(error)
-        next(error)
+        res.status(500).send({ message: error.message })
     }
 })
 postsRouter.post("/", postsValidation, async (req, res, next) => {
