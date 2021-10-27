@@ -21,11 +21,10 @@ postsRouter.get("/", async (req, res, next) => {
 postsRouter.get("/:id/pdf", async (req, res, next) => {
     try {
         const posts = await readPosts()
-        const post = posts.find((post) => post.id.toString() === req.params.id.toString())
+        const post = posts.find((post) => post.id === req.params.id)
 
         res.setHeader("Content-Disposition", `attachment; filename=document.pdf`)
         const source = getPdfReadableStream({
-            title: "Zukhriddin",
             content: post.content
         })
         const destination = res

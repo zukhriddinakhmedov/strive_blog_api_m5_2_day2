@@ -2,20 +2,21 @@ import PdfPrinter from "pdfmake"
 
 export const getPdfReadableStream = data => {
     const fonts = {
-        Helvetica: {
+        Roboto: {
             normal: "Helvetica",
-            bold: "Helvetica-blod",
+            bold: "Helvetica-Bold",
         },
     }
 
     const printer = new PdfPrinter(fonts)
 
+
+
     const docDefinition = {
         content: [
             { text: data.title, style: "subHeader" },
             { text: data.category, style: "header" },
-            { text: data.author.name, style: "subHeader" },
-            { text: data.content }
+            { text: data.content, syle: "subHeader" }
         ],
         styles: {
             header: {
