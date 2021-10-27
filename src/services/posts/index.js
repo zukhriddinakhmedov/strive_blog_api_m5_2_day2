@@ -4,7 +4,7 @@ import createHttpError from "http-errors"
 import { validationResult } from "express-validator"
 import { postsValidation } from "./validation.js"
 import { readPosts, writePost } from "../../library/fs-tools.js"
-// import { pipeline } from "stream"
+import { pipeline } from "stream"
 import { getPdfReadableStream } from "../../library/pdf-tools.js"
 
 
@@ -29,10 +29,11 @@ postsRouter.get("/:id/pdf", async (req, res, next) => {
         }
         const pdfStream = await getPdfReadableStream(post)
         res.setHeader("Content-Type", "application/pdf")
-        pdfStream.pipe(res)
-        pdfStream.end().push(null)
+        pipeline(pdfStream, res, err => {
+            if (err) next(err)
+        })
     } catch (error) {
-        res.status(500).send({ message: error.message })
+        next(error)
     }
 })
 postsRouter.post("/", postsValidation, async (req, res, next) => {
