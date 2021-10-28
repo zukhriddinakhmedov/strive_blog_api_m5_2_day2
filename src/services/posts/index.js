@@ -6,6 +6,7 @@ import { postsValidation } from "./validation.js"
 import { readPosts, writePost } from "../../library/fs-tools.js"
 import { pipeline } from "stream"
 import { getPdfReadableStream } from "../../library/pdf-tools.js"
+import { sendNewPostEmail } from "../../library/email-tools.js"
 
 
 const postsRouter = express.Router()
@@ -94,6 +95,18 @@ postsRouter.delete("/:postId", async (req, res, next) => {
 
         res.status(204).send()
 
+    } catch (error) {
+        next(error)
+    }
+})
+
+postsRouter.post("/email", async (req, res, next) => {
+    try {
+        const { email } = req.body
+
+        await sendNewPostEmail(email)
+
+        res.send("email has been sent")
     } catch (error) {
         next(error)
     }
