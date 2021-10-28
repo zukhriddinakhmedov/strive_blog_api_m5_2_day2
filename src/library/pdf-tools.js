@@ -31,7 +31,7 @@ export const getPdfReadableStream = async (post) => {
     const docDefinition = {
         content: [
             imagePart,
-            { text: post.category, style: "header" },
+            { text: post.category, style: "header", margin: [0, 0, 0, 40] },
             { text: post.title, style: "subHeader" },
             { text: striptags(post.content), lineHeight: 2, style: "subHeader" }
         ],
