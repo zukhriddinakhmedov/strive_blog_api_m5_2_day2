@@ -6,10 +6,14 @@ import authorsRouter from "./services/authors/index.js"
 import postsRouter from "./services/posts/index.js"
 import filesRouter from "./services/files/index.js"
 import { badRequestHandler, unauthorisedErrorHandler, notFoundHandler, internaServerlErrorHandler } from "./errorHandlers.js"
+import yaml from "yamljs"
+import swaggerUI from "swagger-ui-express"
 
 const server = express()
 
 const publicFolderPath = join(process.cwd(), "/public")
+
+const yamlDocument = yaml.load(join(process.cwd(), "./src/yml.yml"))
 // --------------------------GLOBAL MIDDLEWARES----------------------
 const whitelist = [process.env.FE_LOCAL_URL, process.env.FE_PROD_URL]
 const corsOpts = {
@@ -31,6 +35,7 @@ server.use(express.json())
 server.use("/posts", postsRouter)
 server.use("/authors", authorsRouter)
 server.use("/files", filesRouter)
+server.use("/docs", swaggerUI.serve, swaggerUI.setup(yamlDocument))
 // --------------------------ERROR MIDDLEWARES--------------------
 server.use(badRequestHandler)
 server.use(unauthorisedErrorHandler)
